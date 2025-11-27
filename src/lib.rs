@@ -7,31 +7,16 @@ fn sum_as_string(a: usize, b: usize) -> PyResult<String> {
     Ok((a + b).to_string())
 }
 
-#[pyclass(name = "Region")]
-struct Region {
-    ra_verticies: Vec<f64>,
-    dec_verticies: Vec<f64>,
-    ra_interior_point: f64,
-    dec_interior_point: f64,
+#[pyclass] 
+enum PointResult {
+    Inside,
+    Outside,
+    Edge,
+    Antipodal,
 }
 
-#[pymethods]
-impl Region {
-    #[new]
-    fn init(
-        ra_verticies: Vec<f64>,
-        dec_verticies: Vec<f64>,
-        ra_interior_point: f64,
-        dec_interior_point: f64,
-    ) -> Self {
-        Region {
-            ra_verticies,
-            dec_verticies,
-            ra_interior_point,
-            dec_interior_point,
-        }
-    }
-}
+#[pyfunction]
+fn is_inside_polygon(ra_verticies: Vec<f64>, dec_verticies, ra_int_point, dec_int_point, ra_point, dec_point)
 
 #[pymodule]
 fn regionx(m: &Bound<'_, PyModule>) -> PyResult<()> {
