@@ -9,4 +9,5 @@ name = "regionx"
 crate-type = ["cdylib"]
 
 [dependencies]
+astroxide = "0.0.4"
 pyo3 = "0.27.0"
