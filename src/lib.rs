@@ -12,26 +12,21 @@ pub enum PointResult {
     Inside,
     Outside,
     Edge,
-    Antipodal,
 }
 
 #[pyfunction]
 pub fn is_inside_polygon(
     ra_verticies: Vec<f64>,
     dec_verticies: Vec<f64>,
-    ra_int_point: f64,
-    dec_int_point: f64,
     ra_point: f64,
     dec_point: f64,
 ) -> PointResult {
-    let poly =
-        SphericalPolygon::new(ra_verticies, dec_verticies, ra_int_point, dec_int_point).unwrap();
+    let poly = SphericalPolygon::new(ra_verticies, dec_verticies).unwrap();
     let result = poly.locate_point(ra_point, dec_point);
     match result {
         PointLocation::Inside => PointResult::Inside,
         PointLocation::Outside => PointResult::Outside,
         PointLocation::OnBoundary => PointResult::Edge,
-        PointLocation::Antipodal => PointResult::Antipodal,
     }
 }
 

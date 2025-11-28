@@ -4,10 +4,11 @@ version = 4
 
 [[package]]
 name = "astroxide"
-version = "0.0.4"
+version = "0.0.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5f2d4aa5f2d9cac8d1a09c276f0dc2593d6b1c8bf61cc7e77676b62eefeae933"
+checksum = "e534672080a3dc7d4690a9ab7df701aa4f6ca971081f8d2f3c68f1c56ddd6a83"
 dependencies = [
+ "libm",
  "phf",
 ]
 
@@ -43,6 +44,12 @@ name = "libc"
 version = "0.2.177"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2874a2af47a2325c2001a6e6fad9b16a53b802102b528163885171cf92b15976"
+
+[[package]]
+name = "libm"
+version = "0.2.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f9fbbcab51052fe104eb5e5d351cf728d30a5be1fe14d9be8a3b097481fb97de"
 
 [[package]]
 name = "memoffset"
