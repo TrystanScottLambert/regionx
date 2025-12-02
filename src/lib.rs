@@ -8,6 +8,24 @@ pub enum PointResult {
     Edge,
 }
 
+#[pyclass]
+pub struct Polygon {
+    polygon: SphericalPolygon,
+}
+
+#[pymethods]
+impl Polygon {
+    #[new]
+    pub fn new(ra_verticies: Vec<f64>, dec_verticies: Vec<f64>) -> Self {
+        let polygon = SphericalPolygon::new(, vertex_longitudes)
+        Polygon {
+            ra_verticies,
+            dec_verticies,
+        }
+    }
+    pub fn is_inside(ra_point: f64, dec_point: f64) -> PointResult {}
+}
+
 #[pyfunction]
 pub fn is_inside_polygon(
     ra_verticies: Vec<f64>,
