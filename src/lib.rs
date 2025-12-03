@@ -2,17 +2,31 @@ use astroxide::regions::{PointLocation, SphericalAnulus, SphericalAperture, Sphe
 use pyo3::prelude::*;
 
 #[pyclass]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)] // Add these derives
 pub enum PointResult {
     Inside,
     Outside,
-    Edge,
+}
+
+#[pymethods]
+impl PointResult {
+    fn __eq__(&self, other: &Self) -> bool {
+        matches!(
+            (self, other),
+            (PointResult::Inside, PointResult::Inside)
+                | (PointResult::Outside, PointResult::Outside)
+        )
+    }
+
+    fn __hash__(&self) -> u64 {
+        *self as u64
+    }
 }
 
 fn convert_loc(location: PointLocation) -> PointResult {
     match location {
         PointLocation::Inside => PointResult::Inside,
         PointLocation::Outside => PointResult::Outside,
-        PointLocation::OnBoundary => PointResult::Edge,
     }
 }
 
@@ -25,7 +39,7 @@ pub struct Polygon {
 impl Polygon {
     #[new]
     pub fn new(ra_verticies: Vec<f64>, dec_verticies: Vec<f64>) -> Self {
-        let polygon = SphericalPolygon::new(ra_verticies, dec_verticies).unwrap();
+        let polygon = SphericalPolygon::new(ra_verticies, dec_verticies);
         Polygon { polygon }
     }
 
@@ -34,7 +48,7 @@ impl Polygon {
     }
 
     pub fn check_points(&self, ra_points: Vec<f64>, dec_points: Vec<f64>) -> Vec<PointResult> {
-        let results = self.polygon.locate_points(ra_points.clone(), dec_points);
+        let results = self.polygon.locate_points(&ra_points, &dec_points);
         results.iter().map(|&result| convert_loc(result)).collect()
     }
 }
