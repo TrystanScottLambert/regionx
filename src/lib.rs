@@ -8,6 +8,14 @@ pub enum PointResult {
     Edge,
 }
 
+fn convert_loc(location: PointLocation) -> PointResult {
+    match location {
+        PointLocation::Inside => PointResult::Inside,
+        PointLocation::Outside => PointResult::Outside,
+        PointLocation::OnBoundary => PointResult::Edge,
+    }
+}
+
 #[pyclass]
 pub struct Polygon {
     polygon: SphericalPolygon,
@@ -20,25 +28,14 @@ impl Polygon {
         let polygon = SphericalPolygon::new(ra_verticies, dec_verticies).unwrap();
         Polygon { polygon }
     }
+
     pub fn is_inside(&self, ra_point: f64, dec_point: f64) -> PointResult {
-        match self.polygon.locate_point(ra_point, dec_point) {
-            PointLocation::Inside => PointResult::Inside,
-            PointLocation::Outside => PointResult::Outside,
-            PointLocation::OnBoundary => PointResult::Edge,
-        }
+        convert_loc(self.polygon.locate_point(ra_point, dec_point))
     }
 
-    pub fn locate_all(&self, ra_points: Vec<f64>, dec_points: Vec<f64>) -> Vec<PointResult> {
+    pub fn check_points(&self, ra_points: Vec<f64>, dec_points: Vec<f64>) -> Vec<PointResult> {
         let results = self.polygon.locate_points(ra_points.clone(), dec_points);
-        let mut locations = Vec::with_capacity(ra_points.len());
-        for result in results {
-            match result {
-                PointLocation::Inside => locations.push(PointResult::Inside),
-                PointLocation::Outside => locations.push(PointResult::Outside),
-                PointLocation::OnBoundary => locations.push(PointResult::Edge),
-            }
-        }
-        locations
+        results.iter().map(|&result| convert_loc(result)).collect()
     }
 }
 
@@ -56,24 +53,12 @@ impl Aperture {
     }
 
     pub fn is_inside(&self, ra_point: f64, dec_point: f64) -> PointResult {
-        match self.aperture.locate_point(ra_point, dec_point) {
-            PointLocation::OnBoundary => PointResult::Edge,
-            PointLocation::Inside => PointResult::Inside,
-            PointLocation::Outside => PointResult::Outside,
-        }
+        convert_loc(self.aperture.locate_point(ra_point, dec_point))
     }
 
-    pub fn locate_all(&self, ra_points: Vec<f64>, dec_points: Vec<f64>) -> Vec<PointResult> {
+    pub fn check_points(&self, ra_points: Vec<f64>, dec_points: Vec<f64>) -> Vec<PointResult> {
         let results = self.aperture.locate_points(&ra_points, &dec_points);
-        let mut locations: Vec<PointResult> = Vec::new();
-        for result in results {
-            match result {
-                PointLocation::OnBoundary => locations.push(PointResult::Edge),
-                PointLocation::Inside => locations.push(PointResult::Inside),
-                PointLocation::Outside => locations.push(PointResult::Outside),
-            }
-        }
-        locations
+        results.iter().map(|&result| convert_loc(result)).collect()
     }
 }
 
@@ -91,24 +76,12 @@ impl Anulus {
     }
 
     pub fn is_inside(&self, ra_point: f64, dec_point: f64) -> PointResult {
-        match self.anulus.locate_point(ra_point, dec_point) {
-            PointLocation::OnBoundary => PointResult::Edge,
-            PointLocation::Inside => PointResult::Inside,
-            PointLocation::Outside => PointResult::Outside,
-        }
+        convert_loc(self.anulus.locate_point(ra_point, dec_point))
     }
 
-    pub fn locate_all(&self, ra_points: Vec<f64>, dec_points: Vec<f64>) -> Vec<PointResult> {
+    pub fn check_points(&self, ra_points: Vec<f64>, dec_points: Vec<f64>) -> Vec<PointResult> {
         let results = self.anulus.locate_points(&ra_points, &dec_points);
-        let mut locations: Vec<PointResult> = Vec::new();
-        for result in results {
-            match result {
-                PointLocation::OnBoundary => locations.push(PointResult::Edge),
-                PointLocation::Inside => locations.push(PointResult::Inside),
-                PointLocation::Outside => locations.push(PointResult::Outside),
-            }
-        }
-        locations
+        results.iter().map(|&result| convert_loc(result)).collect()
     }
 }
 
