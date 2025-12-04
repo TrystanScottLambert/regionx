@@ -1,3 +1,4 @@
+
 name: Build and Publish Wheels
 
 on:
@@ -8,13 +9,13 @@ on:
 
 jobs:
   build:
-    name: Build wheels (${{ matrix.os }}, Python ${{ matrix.python-version }})
-    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-13, macos-14]
         python-version: ["3.12", "3.13"]
+
+    runs-on: ${{ matrix.os }}
 
     steps:
       - uses: actions/checkout@v4
@@ -24,29 +25,39 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      # -------- LINUX BUILD (manylinux container) --------
+      - name: Build wheels (Linux manylinux)
+        if: startsWith(matrix.os, 'ubuntu')
+        uses: messense/maturin-action@v1
+        with:
+          maturin-version: latest
+          command: build
+          args: --release
+          manylinux: '2014'   # required to enforce container image
+
+      # -------- MACOS BUILD (native) --------
       - name: Install maturin
+        if: startsWith(matrix.os, 'macos')
         run: pip install maturin
 
-      - name: Build wheels
-        run: |
-          if [[ "${{ matrix.os }}" == ubuntu-* ]]; then
-            maturin build --release --manylinux 2014
-          else
-            maturin build --release
-          fi
+      - name: Build wheels (macOS)
+        if: startsWith(matrix.os, 'macos')
+        run: maturin build --release
 
-      - name: Build sdist (only once)
+      # -------- Build sdist only once --------
+      - name: Build sdist
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
-        run: maturin sdist
+        uses: messense/maturin-action@v1
+        with:
+          command: sdist
 
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
-          name: wheels
+          name: wheels-${{ matrix.os }}-py${{ matrix.python-version }}
           path: target/wheels/*
 
   publish:
-    name: Publish to PyPI
     needs: build
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/v')
@@ -54,13 +65,11 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: wheels
           path: dist
 
-      - name: Publish to PyPI with uv
+      - name: Publish to PyPI
         env:
           UV_PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
         run: |
           pip install uv
           uv publish dist/*
-
