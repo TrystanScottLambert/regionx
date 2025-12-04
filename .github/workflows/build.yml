@@ -1,4 +1,3 @@
-
 name: Build and Publish Wheels
 
 on:
@@ -43,8 +42,12 @@ jobs:
         if: startsWith(matrix.os, 'macos')
         run: maturin build --release
 
-      # ---------- Build sdist (once) ----------
-      - name: Build sdist (only once)
+      # ---------- Build sdist (once, on Linux runner) ----------
+      - name: Install maturin (Linux for sdist)
+        if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
+        run: pip install maturin
+
+      - name: Build sdist
         if: matrix.os == 'ubuntu-latest' && matrix.python-version == '3.12'
         run: maturin sdist
 
@@ -72,3 +75,4 @@ jobs:
         run: |
           pip install uv
           uv publish dist/*
+
