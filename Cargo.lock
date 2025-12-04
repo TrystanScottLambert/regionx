@@ -19,9 +19,9 @@ checksum = "3d62b7694a562cdf5a74227903507c56ab2cc8bdd1f781ed5cb4cf9c9f810bfc"
 
 [[package]]
 name = "astroxide"
-version = "0.0.11"
+version = "0.0.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6f4b19ad9314289f5a6e1d9dcb1199beaaf91103af34e4603ad44fc254597b2d"
+checksum = "a85ed7d9dffba33ea8dc70affbe22442be201105f924f44a0285902625faf450"
 dependencies = [
  "kiddo",
  "libm",
