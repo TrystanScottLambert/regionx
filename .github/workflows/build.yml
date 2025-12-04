@@ -58,11 +58,20 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           pattern: wheels-*
-          path: dist
+          path: artifacts
           merge-multiple: true
+      
+      - name: Prepare distribution files
+        run: |
+          mkdir -p dist
+          find artifacts -type f \( -name "*.whl" -o -name "*.tar.gz" \) -exec mv {} dist/ \;
+          echo "Files to publish:"
+          ls -lh dist/
+      
       - name: Publish to PyPI
         env:
-          UV_PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
         run: |
           pip install uv
           uv publish dist/*
