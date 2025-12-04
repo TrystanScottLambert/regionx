@@ -1,34 +1,5 @@
-use astroxide::regions::{PointLocation, SphericalAnulus, SphericalAperture, SphericalPolygon};
+use astroxide::regions::{SphericalAnulus, SphericalAperture, SphericalPolygon};
 use pyo3::prelude::*;
-
-#[pyclass]
-#[derive(Debug, Clone, Copy, PartialEq, Eq)] // Add these derives
-pub enum PointResult {
-    Inside,
-    Outside,
-}
-
-#[pymethods]
-impl PointResult {
-    fn __eq__(&self, other: &Self) -> bool {
-        matches!(
-            (self, other),
-            (PointResult::Inside, PointResult::Inside)
-                | (PointResult::Outside, PointResult::Outside)
-        )
-    }
-
-    fn __hash__(&self) -> u64 {
-        *self as u64
-    }
-}
-
-fn convert_loc(location: PointLocation) -> PointResult {
-    match location {
-        PointLocation::Inside => PointResult::Inside,
-        PointLocation::Outside => PointResult::Outside,
-    }
-}
 
 #[pyclass]
 pub struct Polygon {
@@ -43,13 +14,12 @@ impl Polygon {
         Polygon { polygon }
     }
 
-    pub fn is_inside(&self, ra_point: f64, dec_point: f64) -> PointResult {
-        convert_loc(self.polygon.locate_point(ra_point, dec_point))
+    pub fn is_inside(&self, ra_point: f64, dec_point: f64) -> bool {
+        self.polygon.is_inside(ra_point, dec_point)
     }
 
-    pub fn check_points(&self, ra_points: Vec<f64>, dec_points: Vec<f64>) -> Vec<PointResult> {
-        let results = self.polygon.locate_points(&ra_points, &dec_points);
-        results.iter().map(|&result| convert_loc(result)).collect()
+    pub fn check_points(&self, ra_points: Vec<f64>, dec_points: Vec<f64>) -> Vec<bool> {
+        self.polygon.are_inside(&ra_points, &dec_points)
     }
 }
 
@@ -66,13 +36,12 @@ impl Aperture {
         Aperture { aperture: sph_app }
     }
 
-    pub fn is_inside(&self, ra_point: f64, dec_point: f64) -> PointResult {
-        convert_loc(self.aperture.locate_point(ra_point, dec_point))
+    pub fn is_inside(&self, ra_point: f64, dec_point: f64) -> bool {
+        self.aperture.is_inside(ra_point, dec_point)
     }
 
-    pub fn check_points(&self, ra_points: Vec<f64>, dec_points: Vec<f64>) -> Vec<PointResult> {
-        let results = self.aperture.locate_points(&ra_points, &dec_points);
-        results.iter().map(|&result| convert_loc(result)).collect()
+    pub fn check_points(&self, ra_points: Vec<f64>, dec_points: Vec<f64>) -> Vec<bool> {
+        self.aperture.are_inside(&ra_points, &dec_points)
     }
 }
 
@@ -89,20 +58,18 @@ impl Anulus {
         Anulus { anulus: sph_app }
     }
 
-    pub fn is_inside(&self, ra_point: f64, dec_point: f64) -> PointResult {
-        convert_loc(self.anulus.locate_point(ra_point, dec_point))
+    pub fn is_inside(&self, ra_point: f64, dec_point: f64) -> bool {
+        self.anulus.is_inside(ra_point, dec_point)
     }
 
-    pub fn check_points(&self, ra_points: Vec<f64>, dec_points: Vec<f64>) -> Vec<PointResult> {
-        let results = self.anulus.locate_points(&ra_points, &dec_points);
-        results.iter().map(|&result| convert_loc(result)).collect()
+    pub fn check_points(&self, ra_points: Vec<f64>, dec_points: Vec<f64>) -> Vec<bool> {
+        self.anulus.are_inside(&ra_points, &dec_points)
     }
 }
 
 #[pymodule]
 fn regionx(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // Add your functions here
-    m.add_class::<PointResult>()?;
     m.add_class::<Polygon>()?;
     m.add_class::<Anulus>()?;
     m.add_class::<Aperture>()?;

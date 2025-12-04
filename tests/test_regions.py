@@ -1,5 +1,5 @@
 import pytest
-from regionx import Polygon, Aperture, Anulus, PointResult
+from regionx import Polygon, Aperture, Anulus
 
 
 def test_polygon_ra_edge():
@@ -9,14 +9,14 @@ def test_polygon_ra_edge():
     ra_points = [359, 359, 1, 1]
     dec_points = [80, 82, 82, 80]
     poly = Polygon(ra_points, dec_points)
-    assert poly.is_inside(0.0, 81) == PointResult.Inside
-    assert poly.is_inside(300, 80) == PointResult.Outside
-    assert poly.is_inside(359, 81) == PointResult.Outside  # line is out
+    assert poly.is_inside(0.0, 81)
+    assert not poly.is_inside(300, 80)
+    assert not poly.is_inside(359, 81)  # line is out
 
     eval_points_ra = [0, 300, 359]
     eval_points_dec = [81, 80, 81]
     results = poly.check_points(eval_points_ra, eval_points_dec)
-    answers = [PointResult.Inside, PointResult.Outside, PointResult.Outside]
+    answers = [True, False, False]
     for r, a in zip(results, answers):
         assert r == a
 
@@ -26,23 +26,23 @@ def test_aperture_ra_edge():
     Tests that an aperture works across the 0/360 line.
     """
     app = Aperture(0, 0, 1)  # floating points are a mother
-    assert app.is_inside(0, 0) == PointResult.Inside
-    assert app.is_inside(0.1, 0.1) == PointResult.Inside
-    assert app.is_inside(359.2, 0) == PointResult.Inside
-    assert app.is_inside(0, 1) == PointResult.Inside
-    assert app.is_inside(358, 0) == PointResult.Outside
-    assert app.is_inside(0, 2) == PointResult.Outside
+    assert app.is_inside(0, 0)
+    assert app.is_inside(0.1, 0.1)
+    assert app.is_inside(359.2, 0)
+    assert app.is_inside(0, 1)
+    assert not app.is_inside(358, 0)
+    assert not app.is_inside(0, 2)
 
     eval_ra = [0.0, 0.1, 359.2, 0, 358, 0]
     eval_dec = [0.0, 0.1, 0, 1, 0, 2]
     results = app.check_points(eval_ra, eval_dec)
     answers = [
-        PointResult.Inside,
-        PointResult.Inside,
-        PointResult.Inside,
-        PointResult.Inside,
-        PointResult.Outside,
-        PointResult.Outside,
+        True,
+        True,
+        True,
+        True,
+        False,
+        False,
     ]
     for r, a in zip(results, answers):
         print(r)
@@ -58,12 +58,12 @@ def test_anulus_ra_edge():
     eval_dec = [0.0, 0.1, 0, 1, 0, 2]
     results = app.check_points(eval_ra, eval_dec)
     answers = [
-        PointResult.Outside,
-        PointResult.Outside,
-        PointResult.Inside,
-        PointResult.Inside,
-        PointResult.Inside,
-        PointResult.Inside,
+        False,
+        False,
+        True,
+        True,
+        True,
+        True,
     ]
     for r, a in zip(results, answers):
         print(r)
@@ -81,14 +81,14 @@ def test_aperture_at_pole():
     eval_ra = [0, 90, 180, 270, 0, 90, 180, 270]
     eval_dec = [-89, -88.5, -89.9, -88.1, -87.9, -87.0, -87.8, 0.0]
     answers = [
-        PointResult.Inside,
-        PointResult.Inside,
-        PointResult.Inside,
-        PointResult.Inside,
-        PointResult.Outside,
-        PointResult.Outside,
-        PointResult.Outside,
-        PointResult.Outside,
+        True,
+        True,
+        True,
+        True,
+        False,
+        False,
+        False,
+        False,
     ]
     results = app.check_points(eval_ra, eval_dec)
     for r, a in zip(results, answers):
