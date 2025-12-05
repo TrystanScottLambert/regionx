@@ -1,4 +1,7 @@
-use astroxide::regions::{SphericalAnulus, SphericalAperture, SphericalPolygon};
+use astroxide::{
+    regions::{SphericalAnulus, SphericalAperture, SphericalPolygon, SphericalShape},
+    spherical_trig::build_kd_tree,
+};
 use pyo3::prelude::*;
 
 #[pyclass]
@@ -67,11 +70,86 @@ impl Anulus {
     }
 }
 
+#[pyfunction]
+pub fn apply_apertures(
+    py: Python,
+    ras: Vec<f64>,
+    decs: Vec<f64>,
+    apertures: Vec<Py<Aperture>>,
+) -> PyResult<Vec<bool>> {
+    let tree = build_kd_tree(&ras, &decs);
+
+    let mut result = vec![false; ras.len()];
+
+    for aperture_py in apertures.iter() {
+        let aperture = aperture_py.borrow(py);
+        let inside = aperture.aperture.are_inside_tree(&tree, &ras, &decs);
+
+        // Combine with OR logic (like combine_bool_vecs)
+        for (r, &ins) in result.iter_mut().zip(inside.iter()) {
+            *r = *r || ins;
+        }
+    }
+
+    Ok(result)
+}
+
+#[pyfunction]
+pub fn apply_annuli(
+    py: Python,
+    ras: Vec<f64>,
+    decs: Vec<f64>,
+    annuli: Vec<Py<Anulus>>,
+) -> PyResult<Vec<bool>> {
+    let tree = build_kd_tree(&ras, &decs);
+
+    let mut result = vec![false; ras.len()];
+
+    for anulus_py in annuli.iter() {
+        let anulus = anulus_py.borrow(py);
+        let inside = anulus.anulus.are_inside_tree(&tree, &ras, &decs);
+
+        // Combine with OR logic (like combine_bool_vecs)
+        for (r, &ins) in result.iter_mut().zip(inside.iter()) {
+            *r = *r || ins;
+        }
+    }
+
+    Ok(result)
+}
+
+#[pyfunction]
+pub fn apply_polygons(
+    py: Python,
+    ras: Vec<f64>,
+    decs: Vec<f64>,
+    polygons: Vec<Py<Polygon>>,
+) -> PyResult<Vec<bool>> {
+    let tree = build_kd_tree(&ras, &decs);
+
+    let mut result = vec![false; ras.len()];
+
+    for polygon_py in polygons.iter() {
+        let polygon = polygon_py.borrow(py);
+        let inside = polygon.polygon.are_inside_tree(&tree, &ras, &decs);
+
+        // Combine with OR logic (like combine_bool_vecs)
+        for (r, &ins) in result.iter_mut().zip(inside.iter()) {
+            *r = *r || ins;
+        }
+    }
+
+    Ok(result)
+}
+
 #[pymodule]
 fn regionx(m: &Bound<'_, PyModule>) -> PyResult<()> {
     // Add your functions here
     m.add_class::<Polygon>()?;
     m.add_class::<Anulus>()?;
     m.add_class::<Aperture>()?;
+    m.add_function(wrap_pyfunction!(apply_apertures, m)?)?;
+    m.add_function(wrap_pyfunction!(apply_annuli, m)?)?;
+    m.add_function(wrap_pyfunction!(apply_polygons, m)?)?;
     Ok(())
 }
