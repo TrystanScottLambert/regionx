@@ -3,6 +3,7 @@ use astroxide::{
     spherical_trig::build_kd_tree,
 };
 use pyo3::prelude::*;
+use rayon::prelude::*;
 
 #[pyclass]
 pub struct Polygon {
@@ -129,7 +130,7 @@ pub fn apply_polygons(
 
     let mut result = vec![false; ras.len()];
 
-    for polygon_py in polygons.iter() {
+    for polygon_py in polygons.par_iter() {
         let polygon = polygon_py.borrow(py);
         let inside = polygon.polygon.are_inside_tree(&tree, &ras, &decs);
 
